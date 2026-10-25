@@ -63,7 +63,7 @@ node control-panel/server.js
 cat /tmp/selkies-control-panel.log
 ```
 
-Si editaste `devcontainer.json`, usa **Codespaces: Rebuild Container** en la paleta de comandos.
+Si editaste `devcontainer.json`, usa **Codespaces: Rebuild Container** en la paleta de comandos. Si vuelve a aparecer *recovery mode*, abre **Ver registro de creación** y corrige el primer error del registro antes de intentarlo otra vez.
 
 ## Seguridad
 
@@ -80,8 +80,8 @@ Si editaste `devcontainer.json`, usa **Codespaces: Rebuild Container** en la pal
 - El panel Node.js se ejecuta dentro del Codespace y llama a `docker compose`.
 - Puerto 8090: panel de control.
 - Puerto 8080: escritorio Selkies.
-- El `docker-compose.yml` utiliza la imagen `ghcr.io/selkies-project/selkies:latest`. Si el proyecto oficial cambia el nombre de la imagen, la etiqueta o las variables admitidas, consulta la documentación oficial y actualiza el archivo antes de ejecutar.
-- Codespaces puede limitar Docker-in-Docker según su configuración. Si el daemon Docker no está disponible, la API mostrará el error.
+- El `docker-compose.yml` utiliza la imagen `ghcr.io/selkies-project/selkies/desktop:latest-ubuntu26.04`, como se declara en `docker-compose.yml`. Si el proyecto oficial cambia el nombre de la imagen, la etiqueta o las variables admitidas, consulta la documentación oficial y actualiza el archivo antes de ejecutar.
+- La imagen `mcr.microsoft.com/devcontainers/universal:2` incluye herramientas habituales de desarrollo y la integración Docker para Codespaces. Si Docker no está disponible después de reconstruir el contenedor, revisa el registro de creación del Codespace; el panel no puede iniciar contenedores si el daemon no funciona.
 - Para uso gaming, migra a una VM Linux con GPU y configura los controladores y el acceso GPU según la documentación de Selkies. El panel por sí solo no añade GPU.
 
 ## Enlaces oficiales
