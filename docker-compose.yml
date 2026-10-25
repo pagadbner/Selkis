@@ -1,3 +1,4 @@
+
 services:
   selkies:
     image: ghcr.io/selkies-project/selkies/desktop:latest-ubuntu26.04
@@ -5,8 +6,13 @@ services:
     init: true
     restart: unless-stopped
     shm_size: "2gb"
+
+    security_opt:
+      - seccomp=unconfined
+
     ports:
       - "8080:8080"
+
     environment:
       # Codespaces terminates HTTPS at its forwarded-port proxy.
       SELKIES_ENABLE_HTTPS: "false"
