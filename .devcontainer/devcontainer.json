@@ -1,17 +1,6 @@
 {
   "name": "Selkies Cloud Desktop",
   "image": "mcr.microsoft.com/devcontainers/universal:2",
-  "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {
-      "version": "latest",
-      "moby": true,
-      "enableNonRootDocker": true
-    },
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "lts"
-    }
-  },
-  "privileged": true,
   "forwardPorts": [
     8090,
     8080
