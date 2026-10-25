@@ -1,0 +1,41 @@
+{
+  "name": "Selkies Cloud Desktop",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "moby": true,
+      "enableNonRootDocker": true
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    }
+  },
+  "privileged": true,
+  "forwardPorts": [
+    8090,
+    8080
+  ],
+  "portsAttributes": {
+    "8090": {
+      "label": "Panel Selkies",
+      "onAutoForward": "openBrowser",
+      "protocol": "http"
+    },
+    "8080": {
+      "label": "Escritorio Selkies",
+      "onAutoForward": "silent",
+      "protocol": "http"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand": "bash .devcontainer/start-control-panel.sh",
+  "remoteUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  }
+}

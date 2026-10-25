@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Selkies · Panel de control</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0b12;--panel:#151521;--border:#2b2b40;--text:#f4f3ff;--muted:#a7a5bd;--purple:#8b5cf6;--green:#34d399;--red:#fb7185}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#21143e 0%,var(--bg) 55%);color:var(--text);font:16px system-ui,-apple-system,sans-serif;min-height:100vh;display:grid;place-items:center;padding:20px}
+main{width:min(100%,560px)}.brand{display:flex;align-items:center;gap:12px;margin-bottom:22px}.logo{display:grid;place-items:center;width:48px;height:48px;border-radius:15px;background:linear-gradient(135deg,#a78bfa,#6d28d9);font-size:25px;box-shadow:0 8px 30px #6d28d944}h1{font-size:24px;margin:0}p{color:var(--muted);line-height:1.5;margin:5px 0}.card{background:#151521ed;border:1px solid var(--border);border-radius:20px;padding:20px;margin:14px 0;box-shadow:0 18px 60px #0003}.label{display:block;color:var(--muted);font-size:13px;margin-bottom:8px}input{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:12px;background:#0c0c14;color:var(--text);font:inherit;outline:none}input:focus{border-color:var(--purple)}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}button{border:0;border-radius:12px;padding:14px 12px;font:600 15px system-ui;cursor:pointer;color:white;background:var(--purple)}button:disabled{opacity:.45;cursor:wait}.stop{background:#3a1b2b;color:#fecdd3;border:1px solid #713047}.secondary{background:#26263a;border:1px solid var(--border)}.status{display:flex;align-items:center;gap:9px;font-weight:650}.dot{width:10px;height:10px;border-radius:50%;background:#777}.dot.on{background:var(--green);box-shadow:0 0 12px #34d39988}.dot.off{background:var(--red)}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#0b0b12;border:1px solid var(--border);border-radius:12px;padding:12px;color:#d7d5e8;font-size:12px;max-height:180px;overflow:auto}.hint{font-size:12px}.hidden{display:none!important}.notice{padding:10px 12px;border-radius:10px;background:#26263a;color:#dedcf2;font-size:13px;margin-top:12px}@media(max-width:380px){.buttons{grid-template-columns:1fr}h1{font-size:21px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="brand"><div class="logo">◈</div><div><h1>Selkies Cloud Desktop</h1><p>Panel de control · Codespaces</p></div></div>
+  <section class="card" id="login">
+    <label class="label" for="password">Contraseña de Selkies</label>
+    <input id="password" type="password" autocomplete="current-password" placeholder="Introduce tu secreto SELKIES_PASSWORD">
+    <div class="buttons"><button id="loginBtn">Conectar</button></div>
+    <div class="notice">Usa la misma contraseña que guardaste como secreto <b>SELKIES_PASSWORD</b> en Codespaces. No la escribas en el repositorio.</div>
+  </section>
+  <section class="card hidden" id="dashboard">
+    <div class="status"><span class="dot" id="dot"></span><span id="statusText">Estado desconocido</span></div>
+    <p id="description">Controla el escritorio sin usar comandos en la terminal.</p>
+    <div class="buttons">
+      <button id="startBtn">▶ Iniciar escritorio</button>
+      <button id="stopBtn" class="stop">■ Detener escritorio</button>
+    </div>
+    <div class="buttons"><button id="refreshBtn" class="secondary">↻ Actualizar estado</button><button id="desktopBtn" class="secondary">Abrir escritorio</button></div>
+    <p class="label" style="margin-top:18px">Registro de actividad</p><pre id="output">Listo.</pre>
+    <button id="logoutBtn" class="secondary" style="width:100%;margin-top:8px">Cerrar sesión del panel</button>
+  </section>
+  <p class="hint">Nota: Codespaces no incluye GPU dedicada. Este panel administra el contenedor Selkies; no añade aceleración gráfica.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let token="";
+function showOutput(text){$("output").textContent=text||"Sin mensajes."}
+function setBusy(b){["startBtn","stopBtn","refreshBtn","desktopBtn","logoutBtn"].forEach(id=>$(id).disabled=b)}
+async function api(path,method="GET"){
+  const res=await fetch(path,{method,headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"}});
+  let data={};try{data=await res.json()}catch(_){}
+  if(!res.ok)throw new Error(data.error||data.output||("Error HTTP "+res.status));
+  return data;
+}
+async function refresh(){
+  try{
+    const data=await api("/api/status");
+    const out=(data.output||"").toLowerCase();
+    const running=out.includes("selkies-desktop") && (out.includes("running")||out.includes("up"));
+    $("dot").className="dot "+(running?"on":"off");
+    $("statusText").textContent=running?"Escritorio iniciado":"Escritorio detenido o iniciando";
+    showOutput(data.output||"Docker no muestra contenedores activos.");
+  }catch(e){showOutput(e.message);$("statusText").textContent="No se pudo consultar el estado";$("dot").className="dot off"}
+}
+$("loginBtn").onclick=async()=>{
+  token=$("password").value;
+  if(!token){alert("Introduce la contraseña.");return}
+  try{await api("/api/status");$("login").classList.add("hidden");$("dashboard").classList.remove("hidden");$("password").value="";await refresh()}
+  catch(e){token="";alert("No se pudo autenticar: "+e.message)}
+};
+$("password").addEventListener("keydown",e=>{if(e.key==="Enter")$("loginBtn").click()});
+$("startBtn").onclick=async()=>{setBusy(true);$("statusText").textContent="Iniciando…";try{const d=await api("/api/start","POST");showOutput(d.output||"Solicitud de inicio completada.");await refresh()}catch(e){showOutput(e.message)}finally{setBusy(false)}};
+$("stopBtn").onclick=async()=>{if(!confirm("¿Seguro que quieres detener el escritorio?"))return;setBusy(true);try{const d=await api("/api/stop","POST");showOutput(d.output||"Escritorio detenido.");await refresh()}catch(e){showOutput(e.message)}finally{setBusy(false)}};
+$("refreshBtn").onclick=refresh;
+$("desktopBtn").onclick=()=>window.open(window.location.protocol+"//"+window.location.hostname.replace(/-8090\./,"-8080.")+"/","_blank","noopener");
+$("logoutBtn").onclick=()=>{token="";$("dashboard").classList.add("hidden");$("login").classList.remove("hidden")};
+</script>
+</body>
+</html>

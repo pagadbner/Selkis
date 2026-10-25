@@ -1,0 +1,16 @@
+services:
+  selkies:
+    image: ghcr.io/selkies-project/selkies/desktop:latest-ubuntu26.04
+    container_name: selkies-desktop
+    init: true
+    restart: unless-stopped
+    shm_size: "2gb"
+    ports:
+      - "8080:8080"
+    environment:
+      # Codespaces terminates HTTPS at its forwarded-port proxy.
+      SELKIES_ENABLE_HTTPS: "false"
+      SELKIES_ENABLE_BASIC_AUTH: "true"
+      SELKIES_BASIC_AUTH_USER: "${SELKIES_USER:-ubuntu}"
+      SELKIES_BASIC_AUTH_PASSWORD: "${SELKIES_PASSWORD:?Configura SELKIES_PASSWORD en Codespaces Secrets}"
+      PASSWD: "${SELKIES_PASSWORD:?Configura SELKIES_PASSWORD en Codespaces Secrets}"
